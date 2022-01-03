@@ -12,16 +12,18 @@ router.post('/api/register', async (ctx) => {
     username,
     password,
   });
+  await userDB.save();
 
-  const newJWTData = new JWTModel({
-    longJWT: dataEncode.longJWT,
-    username,
-  });
-
-  await Promise.all([
-    userDB.save(),
-    newJWTData.save(),
-  ]);
+  const jwtOld = await JWTModel.findOne({ username });
+  if (jwtOld) {
+    await JWTModel.findOneAndUpdate({ username }, { longJWT: dataEncode.longJWT });
+  } else {
+    const newJWTData = new JWTModel({
+      longJWT: dataEncode.longJWT,
+      username,
+    });
+    await newJWTData.save();
+  }
 
   ctx.set('jwt', dataEncode.shortJWT);
   ctx.body = { msg: 1 };
