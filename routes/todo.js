@@ -8,8 +8,11 @@ const router = new Router();
 router.get('/api/todos', authMiddleware, async (ctx) => {
   const username = ctx.state.username;
   if (!username) ctx.throw(404);
-  const todosDB = await TodoModel.find({ username });
-  ctx.body = todosDB;
+  const todosDB = await TodoModel.findOne({ username }).select(['todos']).lean();
+  if (!todosDB) ctx.body = [];
+  else {
+    ctx.body = todosDB.todos;
+  }
 });
 
 router.post('/api/todo', authMiddleware, async (ctx) => {
